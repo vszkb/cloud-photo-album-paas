@@ -1,7 +1,13 @@
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
 {
-    Args = args,
-    WebRootPath = "wwwroot/browser"
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
 builder.Services.AddControllers();
