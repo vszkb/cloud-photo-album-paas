@@ -1,0 +1,78 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="bi bi-images me-2"></i>Publikus Galéria</h2>
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 small text-muted">Rendezés:</label>
+      <select class="form-select form-select-sm" style="width: auto;"
+              [ngModel]="sortMode()" (ngModelChange)="onSortChange($event)">
+        <option value="date-desc">Dátum (legújabb elöl)</option>
+        <option value="date-asc">Dátum (legrégebbi elöl)</option>
+        <option value="name-asc">Név (A–Z)</option>
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Betöltés...</span>
+      </div>
+    </div>
+  } @else if (sortedPhotos().length === 0) {
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-image display-1"></i>
+      <p class="mt-3">Még nincs feltöltött kép.</p>
+    </div>
+  } @else {
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      @for (photo of sortedPhotos(); track photo.id) {
+        <div class="col">
+          <div class="card h-100 shadow-sm border-0">
+            <img [src]="apiUrl + photo.imageUrl"
+                 [alt]="photo.name"
+                 class="card-img-top cursor-pointer"
+                 style="height: 220px; object-fit: cover;"
+                 (click)="openModal(photo)">
+            <div class="card-body">
+              <h6 class="card-title text-truncate mb-1">{{ photo.name }}</h6>
+              <small class="text-muted">
+                <i class="bi bi-calendar3 me-1"></i>{{ photo.uploadedAt | date:'yyyy-MM-dd HH:mm' }}
+              </small>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-3">
+              <a [routerLink]="['/photo', photo.id]" class="btn btn-outline-primary btn-sm w-100">
+                <i class="bi bi-share me-1"></i>Megosztás
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal -->
+  @if (selectedPhoto(); as photo) {
+    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.7);" (click)="closeModal()">
+      <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
+        <div class="modal-content border-0">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ photo.name }}</h5>
+            <button type="button" class="btn-close" (click)="closeModal()"></button>
+          </div>
+          <div class="modal-body p-0">
+            <img [src]="apiUrl + photo.imageUrl" [alt]="photo.name" class="w-100">
+          </div>
+          <div class="modal-footer">
+            <small class="text-muted me-auto">
+              <i class="bi bi-calendar3 me-1"></i>{{ photo.uploadedAt | date:'yyyy-MM-dd HH:mm' }}
+            </small>
+            <a [routerLink]="['/photo', photo.id]" class="btn btn-outline-primary btn-sm" (click)="closeModal()">
+              <i class="bi bi-share me-1"></i>Megosztás
+            </a>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="closeModal()">Bezárás</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

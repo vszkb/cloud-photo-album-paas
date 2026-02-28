@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using photoalbum_be;
 using photoalbum_be.Models;
 using Scalar.AspNetCore;
@@ -34,7 +35,42 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        var schemeName = "Bearer";
+
+        // 1. JWT Séma definiálása
+        var securityScheme = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Ide másold be az accessToken-t (a 'Bearer ' szócska nélkül)!"
+        };
+
+        // 2. Hozzáadás a komponensekhez
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes[schemeName] = securityScheme;
+
+        // 3. AZ ÚJ .NET 10 MEGOLDÁS: OpenApiSecuritySchemeReference
+        // Ez váltotta le teljesen a régi, bonyolult Reference mechanizmust!
+        var schemeRef = new OpenApiSecuritySchemeReference(schemeName, document);
+
+        var securityRequirement = new OpenApiSecurityRequirement
+        {
+            [schemeRef] = [] // Üres tömb a scope-oknak (a C# 12+ collection expressionnel)
+        };
+
+        // 4. Alkalmazás a teljes API dokumentációra
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(securityRequirement);
+
+        return Task.CompletedTask;
+    });
+});
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
