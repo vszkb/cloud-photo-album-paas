@@ -8,8 +8,8 @@ RUN npm run build
 
 ### STAGE 2: Run ###
 FROM nginx:1.25.2
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=build /usr/src/app/dist/photoalbum-fe /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /usr/src/app/dist/photoalbum-fe/browser /usr/share/nginx/html
 
 EXPOSE 8080
-CMD ["/bin/sh",  "-c",  "envsubst < /usr/share/nginx/html/assets/env.sample.js > /usr/share/nginx/html/assets/env.js && exec nginx -g 'daemon off;'"]
+CMD ["/bin/sh",  "-c",  "envsubst < /usr/share/nginx/html/env.sample.js > /usr/share/nginx/html/env.js && exec nginx -g 'daemon off;'"]
