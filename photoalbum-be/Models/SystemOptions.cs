@@ -2,8 +2,6 @@
 
 public class SystemOptions
 {
-    public string? AllowedHosts { get; set; }
-
     public required string[] AllowedOrigins { get; set; } = [];
 
     public required ConnectionStringsOptions ConnectionStrings { get; set; }
