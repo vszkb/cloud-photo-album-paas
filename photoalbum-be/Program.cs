@@ -1,29 +1,67 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using photoalbum_be;
+using photoalbum_be.Models;
+
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddOptions<SystemOptions>()
+    .Bind(builder.Configuration)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+var systemOptions = builder.Configuration.Get<SystemOptions>();
+
+
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseNpgsql(systemOptions!.ConnectionStrings.DefaultConnection));
+
+builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddEntityFrameworkStores<DataContext>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        if (systemOptions?.AllowedOrigins != null && systemOptions.AllowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(systemOptions.AllowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
     });
 });
 
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+    dbContext.Database.Migrate();
+}
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseRouting();
 
+app.UseCors("CorsPolicy");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapIdentityApi<IdentityUser>();
 app.MapControllers();
-
-app.MapFallbackToFile("/index.html");
 
 app.Run();

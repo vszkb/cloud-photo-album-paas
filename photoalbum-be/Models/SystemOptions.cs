@@ -1,6 +1,15 @@
-﻿namespace photoalbum_be.Models
+﻿namespace photoalbum_be.Models;
+
+public class SystemOptions
 {
-    public class SystemOptions
-    {
-    }
+    public string? AllowedHosts { get; set; }
+
+    public required string[] AllowedOrigins { get; set; } = [];
+
+    public required ConnectionStringsOptions ConnectionStrings { get; set; }
+}
+
+public class ConnectionStringsOptions
+{
+    public required string DefaultConnection { get; set; }
 }
