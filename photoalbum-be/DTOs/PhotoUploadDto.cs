@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace photoalbum_be.DTOs;
 
-/// <summary>
-/// Fénykép feltöltéséhez használt DTO (multipart/form-data).
-/// </summary>
 public class PhotoUploadDto
 {
     [Required]

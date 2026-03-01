@@ -3,7 +3,7 @@ name: cloud-photoalbum
 services:
   db:
     image: postgres:18-alpine
-    container_name: pohotalbum-postgres
+    container_name: photoalbum-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres

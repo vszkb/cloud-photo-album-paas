@@ -41,9 +41,33 @@ export class Register {
         setTimeout(() => this.router.navigate(['/login']), 2000);
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Hiba történt a regisztráció során.');
+        this.error.set(this.parseError(err));
         this.loading.set(false);
       }
     });
+  }
+
+  private parseError(err: any): string {
+    const body = err?.error;
+    if (!body) return 'Hiba történt a regisztráció során.';
+
+    // ASP.NET Identity validation errors: { errors: { "PasswordTooShort": ["..."], ... } }
+    if (body.errors && typeof body.errors === 'object') {
+      const messages: string[] = [];
+      for (const key of Object.keys(body.errors)) {
+        const vals = body.errors[key];
+        if (Array.isArray(vals)) {
+          messages.push(...vals);
+        }
+      }
+      if (messages.length > 0) return messages.join(' ');
+    }
+
+    // Simple message field
+    if (body.message) return body.message;
+    if (body.title) return body.title;
+    if (typeof body === 'string') return body;
+
+    return 'Hiba történt a regisztráció során.';
   }
 }

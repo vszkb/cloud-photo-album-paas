@@ -15,7 +15,6 @@ public class PhotosController(DataContext db, IWebHostEnvironment env) : Control
 
     /// <summary>
     /// Fényképek listázása (csak metaadatok).
-    /// Rendezés: sortBy=name (név szerint növekvő) vagy sortBy=date (dátum szerint csökkenő, alapértelmezett).
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<List<PhotoListDto>>> GetPhotos([FromQuery] string? sortBy)
@@ -36,8 +35,7 @@ public class PhotosController(DataContext db, IWebHostEnvironment env) : Control
     }
 
     /// <summary>
-    /// Fizikai képfájl visszaadása az adott azonosító alapján.
-    /// A frontend közvetlenül az img src-be használhatja.
+    /// Kép visszaadása az adott azonosító alapján.
     /// </summary>
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetPhoto(int id)
@@ -68,18 +66,15 @@ public class PhotosController(DataContext db, IWebHostEnvironment env) : Control
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        // Feltöltési mappa biztosítása
         var uploadsDir = Path.Combine(GetWebRootPath(), "uploads");
         Directory.CreateDirectory(uploadsDir);
 
-        // Egyedi fájlnév generálása ütközés elkerülésére
         var fileName = $"{Guid.NewGuid()}{extension}";
         var filePath = Path.Combine(uploadsDir, fileName);
 
         await using var stream = new FileStream(filePath, FileMode.Create);
         await dto.Image.CopyToAsync(stream);
 
-        // Adatbázis rekord mentése
         var photo = new Photo
         {
             Name = dto.Name,
@@ -96,8 +91,7 @@ public class PhotosController(DataContext db, IWebHostEnvironment env) : Control
     }
 
     /// <summary>
-    /// Fénykép törlése (rekord + fizikai fájl).
-    /// Csak a feltöltő felhasználó törölheti a saját képét.
+    /// Fénykép törlése
     /// </summary>
     [Authorize]
     [HttpDelete("{id:int}")]
@@ -107,17 +101,14 @@ public class PhotosController(DataContext db, IWebHostEnvironment env) : Control
         if (photo is null)
             return NotFound();
 
-        // Ellenőrzés: csak a tulajdonos törölhet
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         if (photo.UserId != userId)
             return Forbid();
 
-        // Fizikai fájl törlése
         var filePath = Path.Combine(GetWebRootPath(), photo.ImagePath);
         if (System.IO.File.Exists(filePath))
             System.IO.File.Delete(filePath);
 
-        // Adatbázis rekord törlése
         db.Photos.Remove(photo);
         await db.SaveChangesAsync();
 
