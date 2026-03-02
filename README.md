@@ -1,6 +1,19 @@
 # cloud-photo-album-paas
 
-## Cél
+## Technológiai stack
+
+- **Frontend:** Angular v20+
+- **Backend:** C# / .NET 10 Web API
+- **Adatbáziskezelés:** Entity Framework Core (Code-First megközelítés automatikus migrációkkal)
+- **Adatbázis:** PostgreSQL (Relációs adatbázis a felhasználók és a fotók metaadatainak tárolására)
+
+## Release stack
+
+* **Backend & Frontend:** Google Cloud Run
+* **Adatbázis:** Google Cloud SQL (PostgreSQL)
+* **CI/CD:** Google Cloud Build
+
+## Specifikáció
 
 Megismerkedni egy PaaS környezettel felhasználói szinten és segítségével létrehozni egy fényképalbum alkalmazást.
 Eszközök, feltételek:
