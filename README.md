@@ -1,5 +1,3 @@
-# cloud-photo-album-paas
-
 ## Technológiai stack
 
 - **Frontend:** Angular v20+

@@ -1,27 +1,32 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./components/gallery/gallery').then(m => m.Gallery)
+    loadComponent: () =>
+      import('./features/photos/photo-gallery/photo-gallery.component').then(m => m.PhotoGalleryComponent)
   },
   {
     path: 'login',
-    loadComponent: () => import('./components/login/login').then(m => m.Login)
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'register',
-    loadComponent: () => import('./components/register/register').then(m => m.Register)
+    loadComponent: () =>
+      import('./features/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
     path: 'my-photos',
-    loadComponent: () => import('./components/my-photos/my-photos').then(m => m.MyPhotos),
+    loadComponent: () =>
+      import('./features/photos/my-photos/my-photos.component').then(m => m.MyPhotosComponent),
     canActivate: [authGuard]
   },
   {
     path: 'photo/:id',
-    loadComponent: () => import('./components/photo-detail/photo-detail').then(m => m.PhotoDetail)
+    loadComponent: () =>
+      import('./features/photos/photo-detail/photo-detail.component').then(m => m.PhotoDetailComponent)
   },
   {
     path: '**',

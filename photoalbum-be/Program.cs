@@ -1,8 +1,10 @@
+using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using photoalbum_be;
 using photoalbum_be.Models;
+using photoalbum_be.Services;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +71,9 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
+
+builder.Services.AddSingleton(_ => StorageClient.Create());
+builder.Services.AddScoped<ICloudStorageService, GoogleCloudStorageService>();
 
 builder.Services.AddControllers();
 
