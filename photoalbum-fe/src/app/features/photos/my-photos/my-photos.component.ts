@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PhotoService } from '../services/photo.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -9,13 +9,14 @@ import { Photo } from '../../../core/models/photo.model';
 @Component({
   selector: 'app-my-photos',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [DatePipe, FormsModule, ReactiveFormsModule, RouterLink],
   templateUrl: './my-photos.component.html',
   styleUrl: './my-photos.component.scss'
 })
 export class MyPhotosComponent implements OnInit {
   private photoService = inject(PhotoService);
   private toast = inject(ToastService);
+  private fb = inject(FormBuilder);
 
   protected photos = signal<Photo[]>([]);
   protected loading = signal(true);
@@ -25,13 +26,17 @@ export class MyPhotosComponent implements OnInit {
   protected sortDirection = signal<'asc' | 'desc'>('desc');
 
   // upload form
-  protected photoName = signal('');
+  protected uploadForm = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(40)]]
+  });
   protected selectedFile = signal<File | null>(null);
   protected uploading = signal(false);
 
   // edit
   protected editingPhoto = signal<Photo | null>(null);
-  protected editName = signal('');
+  protected editForm = this.fb.group({
+    name: ['', [Validators.required, Validators.maxLength(40)]]
+  });
 
   // delete confirm
   protected deletingPhoto = signal<Photo | null>(null);
@@ -59,13 +64,13 @@ export class MyPhotosComponent implements OnInit {
 
   upload(): void {
     const file = this.selectedFile();
-    const name = this.photoName().trim();
-    if (!file || !name || name.length > 40) return;
+    const name = this.uploadForm.value.name?.trim() ?? '';
+    if (!file || this.uploadForm.invalid) return;
 
     this.uploading.set(true);
     this.photoService.upload(name, file).subscribe({
       next: () => {
-        this.photoName.set('');
+        this.uploadForm.reset();
         this.selectedFile.set(null);
         this.uploading.set(false);
         this.toast.show('Sikeres feltöltés!', 'success');
@@ -81,17 +86,18 @@ export class MyPhotosComponent implements OnInit {
   // ── Edit ──
   startEdit(photo: Photo): void {
     this.editingPhoto.set(photo);
-    this.editName.set(photo.name);
+    this.editForm.setValue({ name: photo.name });
   }
 
   cancelEdit(): void {
     this.editingPhoto.set(null);
+    this.editForm.reset();
   }
 
   saveEdit(): void {
     const photo = this.editingPhoto();
-    const name = this.editName().trim();
-    if (!photo || !name || name.length > 40) return;
+    const name = this.editForm.value.name?.trim() ?? '';
+    if (!photo || this.editForm.invalid) return;
 
     this.photoService.update(photo.id, name).subscribe({
       next: () => {

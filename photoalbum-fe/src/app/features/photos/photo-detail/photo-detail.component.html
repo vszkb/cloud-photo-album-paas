@@ -14,11 +14,11 @@
       <div class="row justify-content-center">
         <div class="col-lg-8">
           <div class="card shadow border-0">
-            <img [src]="p.imageUrl" [alt]="p.name" class="card-img-top">
+            <img [src]="p.imagePath" [alt]="p.name" class="card-img-top">
             <div class="card-body">
               <h4 class="card-title mb-2">{{ p.name }}</h4>
               <p class="text-muted mb-3">
-                <i class="bi bi-calendar3 me-1"></i>{{ p.uploadedAt | date:'yyyy-MM-dd HH:mm' }}
+                <i class="bi bi-calendar3 me-1"></i>{{ p.uploadDate | date:'yyyy-MM-dd HH:mm' }}
               </p>
               <div class="d-flex gap-2">
                 <a routerLink="/" class="btn btn-outline-secondary btn-sm">

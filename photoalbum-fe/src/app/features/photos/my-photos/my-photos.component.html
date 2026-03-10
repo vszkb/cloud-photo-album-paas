@@ -5,12 +5,11 @@
   <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
       <h5 class="card-title mb-3"><i class="bi bi-cloud-arrow-up me-2"></i>Új kép feltöltése</h5>
-      <form (ngSubmit)="upload()" class="row g-2 align-items-end">
+      <form [formGroup]="uploadForm" (ngSubmit)="upload()" class="row g-2 align-items-end">
         <div class="col-12 col-md">
           <label class="form-label mb-1">Kép neve</label>
           <input type="text" class="form-control" placeholder="Pl. Nyári vakáció"
-                 [ngModel]="photoName()" (ngModelChange)="photoName.set($event)"
-                 name="photoName" maxlength="40" required>
+                 formControlName="name" maxlength="40">
           <div class="form-text">Max. 40 karakter</div>
         </div>
         <div class="col-12 col-md">
@@ -19,7 +18,7 @@
         </div>
         <div class="col-12 col-md-auto">
           <button type="submit" class="btn btn-primary w-100"
-                  [disabled]="uploading() || !photoName().trim() || !selectedFile()">
+                  [disabled]="uploading() || uploadForm.invalid || !selectedFile()">
             @if (uploading()) {
               <span class="spinner-border spinner-border-sm me-1"></span>
             }
@@ -58,10 +57,10 @@
     <div class="photo-grid">
       @for (photo of photos(); track photo.id) {
         <div class="photo-item">
-          <img [src]="photo.imageUrl" [alt]="photo.name" loading="lazy">
+          <img [src]="photo.imagePath" [alt]="photo.name" loading="lazy">
           <div class="photo-overlay">
             <span class="fw-semibold text-truncate">{{ photo.name }}</span>
-            <small>{{ photo.uploadedAt | date:'yyyy-MM-dd HH:mm' }}</small>
+            <small>{{ photo.uploadDate | date:'yyyy-MM-dd HH:mm' }}</small>
             <div class="d-flex gap-1 mt-1">
               <a [routerLink]="['/photo', photo.id]" class="btn btn-sm btn-outline-light"
                  title="Megosztás">
@@ -91,13 +90,13 @@
           </div>
           <div class="modal-body">
             <input type="text" class="form-control" maxlength="40"
-                   [ngModel]="editName()" (ngModelChange)="editName.set($event)">
+                   [formControl]="editForm.controls.name">
             <div class="form-text">Max. 40 karakter</div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary btn-sm" (click)="cancelEdit()">Mégse</button>
             <button class="btn btn-primary btn-sm" (click)="saveEdit()"
-                    [disabled]="!editName().trim() || editName().trim().length > 40">Mentés</button>
+                    [disabled]="editForm.invalid">Mentés</button>
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@ namespace photoalbum_be.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PhotosController(DataContext db, ICloudStorageService cloudStorage) : ControllerBase
+public class PhotosController(DataContext _context, ICloudStorageService _objectStorage) : ControllerBase
 {
     private static readonly HashSet<string> AllowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
 
@@ -22,10 +22,10 @@ public class PhotosController(DataContext db, ICloudStorageService cloudStorage)
         [FromQuery] string? sortBy,
         [FromQuery] string? sortDirection)
     {
-        IQueryable<Photo> query = db.Photos;
+        IQueryable<Photo> query = _context.Photos;
 
         var photos = await ApplySorting(query, sortBy, sortDirection)
-            .Select(p => new PhotoListDto(p.Id, p.Name, p.UploadDate))
+            .Select(p => new PhotoListDto(p.Id, p.Name, p.UploadDate, p.ImagePath))
             .ToListAsync();
 
         return Ok(photos);
@@ -42,26 +42,26 @@ public class PhotosController(DataContext db, ICloudStorageService cloudStorage)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        IQueryable<Photo> query = db.Photos.Where(p => p.UserId == userId);
+        IQueryable<Photo> query = _context.Photos.Where(p => p.UserId == userId);
 
         var photos = await ApplySorting(query, sortBy, sortDirection)
-            .Select(p => new PhotoListDto(p.Id, p.Name, p.UploadDate))
+            .Select(p => new PhotoListDto(p.Id, p.Name, p.UploadDate, p.ImagePath))
             .ToListAsync();
 
         return Ok(photos);
     }
 
     /// <summary>
-    /// Kép URL-jének visszaadása az adott azonosító alapján.
+    /// Kép metaadatainak és Cloud Storage URL-jének visszaadása az adott azonosító alapján.
     /// </summary>
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetPhoto(int id)
+    public async Task<ActionResult<PhotoListDto>> GetPhoto(int id)
     {
-        var photo = await db.Photos.FindAsync(id);
+        var photo = await _context.Photos.FindAsync(id);
         if (photo is null)
             return NotFound();
 
-        return Redirect(photo.ImagePath);
+        return Ok(new PhotoListDto(photo.Id, photo.Name, photo.UploadDate, photo.ImagePath));
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class PhotosController(DataContext db, ICloudStorageService cloudStorage)
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         var fileName = $"{Guid.NewGuid()}{extension}";
-        var imageUrl = await cloudStorage.UploadFileAsync(dto.Image, fileName);
+        var imageUrl = await _objectStorage.UploadFileAsync(dto.Image, fileName);
 
         var photo = new Photo
         {
@@ -92,10 +92,10 @@ public class PhotosController(DataContext db, ICloudStorageService cloudStorage)
             UserId = userId
         };
 
-        db.Photos.Add(photo);
-        await db.SaveChangesAsync();
+        _context.Photos.Add(photo);
+        await _context.SaveChangesAsync();
 
-        var result = new PhotoListDto(photo.Id, photo.Name, photo.UploadDate);
+        var result = new PhotoListDto(photo.Id, photo.Name, photo.UploadDate, imageUrl);
         return CreatedAtAction(nameof(GetPhoto), new { id = photo.Id }, result);
     }
 
@@ -106,7 +106,7 @@ public class PhotosController(DataContext db, ICloudStorageService cloudStorage)
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeletePhoto(int id)
     {
-        var photo = await db.Photos.FindAsync(id);
+        var photo = await _context.Photos.FindAsync(id);
         if (photo is null)
             return NotFound();
 
@@ -114,10 +114,10 @@ public class PhotosController(DataContext db, ICloudStorageService cloudStorage)
         if (photo.UserId != userId)
             return Forbid();
 
-        await cloudStorage.DeleteFileAsync(photo.ImagePath);
+        await _objectStorage.DeleteFileAsync(photo.ImagePath);
 
-        db.Photos.Remove(photo);
-        await db.SaveChangesAsync();
+        _context.Photos.Remove(photo);
+        await _context.SaveChangesAsync();
 
         return NoContent();
     }
@@ -130,8 +130,7 @@ public class PhotosController(DataContext db, ICloudStorageService cloudStorage)
         string? sortBy,
         string? sortDirection)
     {
-        var descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase)
-                         || sortDirection is null;
+        var descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase) || sortDirection is null;
 
         return sortBy?.ToLowerInvariant() switch
         {

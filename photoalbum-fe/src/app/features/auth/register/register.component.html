@@ -14,18 +14,16 @@
           @if (error()) {
             <div class="alert alert-danger py-2">{{ error() }}</div>
           }
-          <form (ngSubmit)="submit()">
+          <form [formGroup]="form" (ngSubmit)="submit()">
             <div class="mb-3">
               <label class="form-label">E-mail cím</label>
               <input type="email" class="form-control"
-                     [ngModel]="email()" (ngModelChange)="email.set($event)"
-                     name="email" placeholder="pelda@email.hu" required>
+                     formControlName="email" placeholder="pelda@email.hu">
             </div>
             <div class="mb-3">
               <label class="form-label">Jelszó</label>
               <input type="password" class="form-control"
-                     [ngModel]="password()" (ngModelChange)="password.set($event)"
-                     name="password" placeholder="••••••••" required>
+                     formControlName="password" placeholder="••••••••">
               <div class="form-text">
                 <i class="bi bi-info-circle me-1"></i>
                 Legalább 6 karakter, tartalmazzon nagybetűt, kisbetűt, számot és speciális karaktert.
@@ -34,11 +32,10 @@
             <div class="mb-3">
               <label class="form-label">Jelszó megerősítése</label>
               <input type="password" class="form-control"
-                     [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)"
-                     name="confirmPassword" placeholder="••••••••" required>
+                     formControlName="confirmPassword" placeholder="••••••••">
             </div>
             <button type="submit" class="btn btn-primary w-100"
-                    [disabled]="loading() || !email() || !password() || !confirmPassword()">
+                    [disabled]="loading() || form.invalid">
               @if (loading()) {
                 <span class="spinner-border spinner-border-sm me-1"></span>
               }

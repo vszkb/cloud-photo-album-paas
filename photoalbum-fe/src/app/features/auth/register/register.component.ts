@@ -1,27 +1,34 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html'
 })
 export class RegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private fb = inject(FormBuilder);
 
-  protected email = signal('');
-  protected password = signal('');
-  protected confirmPassword = signal('');
+  protected form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+    confirmPassword: ['', Validators.required]
+  });
+
   protected loading = signal(false);
   protected error = signal<string | null>(null);
   protected success = signal(false);
 
   submit(): void {
-    if (this.password() !== this.confirmPassword()) {
+    if (this.form.invalid) return;
+    const { email, password, confirmPassword } = this.form.value;
+
+    if (password !== confirmPassword) {
       this.error.set('A jelszavak nem egyeznek!');
       return;
     }
@@ -29,7 +36,7 @@ export class RegisterComponent {
     this.loading.set(true);
     this.error.set(null);
 
-    this.authService.register({ email: this.email(), password: this.password() }).subscribe({
+    this.authService.register({ email: email!, password: password! }).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);
