@@ -1,14 +1,13 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PhotoService } from '../services/photo.service';
 import { Photo } from '../../../core/models/photo.model';
+import { PhotoGridComponent } from '../../../shared/ui/photo-grid/photo-grid.component';
 
 @Component({
   selector: 'app-photo-gallery',
   standalone: true,
-  imports: [DatePipe, RouterLink, FormsModule],
+  imports: [FormsModule, PhotoGridComponent],
   templateUrl: './photo-gallery.component.html',
   styleUrl: './photo-gallery.component.scss'
 })
@@ -19,7 +18,6 @@ export class PhotoGalleryComponent implements OnInit {
   protected loading = signal(true);
   protected sortBy = signal<'name' | 'date'>('date');
   protected sortDirection = signal<'asc' | 'desc'>('desc');
-  protected selectedPhoto = signal<Photo | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -35,13 +33,5 @@ export class PhotoGalleryComponent implements OnInit {
 
   onSortChange(): void {
     this.load();
-  }
-
-  openModal(photo: Photo): void {
-    this.selectedPhoto.set(photo);
-  }
-
-  closeModal(): void {
-    this.selectedPhoto.set(null);
   }
 }

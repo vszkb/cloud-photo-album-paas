@@ -1,0 +1,67 @@
+@if (photos().length === 0) {
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-image display-1"></i>
+    <p class="mt-3">{{ emptyText() }}</p>
+  </div>
+} @else {
+  <div class="photo-grid">
+    @for (photo of photos(); track photo.id) {
+      <div class="photo-item" (click)="openModal(photo)">
+        <img [src]="photo.imageUrl" [alt]="photo.name" loading="lazy">
+        <div class="photo-overlay">
+          <span class="fw-semibold text-truncate">{{ photo.name }}</span>
+          <small>{{ photo.uploadDate | date:'yyyy-MM-dd HH:mm' }}</small>
+          <div class="d-flex gap-1 mt-1">
+            <button class="btn btn-sm btn-outline-light" title="Link másolása"
+                    (click)="copyLink(photo, $event)">
+              @if (copiedId() === photo.id) {
+                <i class="bi bi-check-lg"></i>
+              } @else {
+                <i class="bi bi-share"></i>
+              }
+            </button>
+            @if (editable()) {
+              <button class="btn btn-sm btn-outline-light" title="Szerkesztés"
+                      (click)="$event.stopPropagation(); edit.emit(photo)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger" title="Törlés"
+                      (click)="$event.stopPropagation(); delete.emit(photo)">
+                <i class="bi bi-trash"></i>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Lightbox -->
+@if (selectedPhoto(); as photo) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,.8)" (click)="closeModal()">
+    <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content border-0 bg-black">
+        <div class="modal-header border-0">
+          <h5 class="modal-title text-white">{{ photo.name }}</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body p-0">
+          <img [src]="photo.imageUrl" [alt]="photo.name" class="w-100">
+        </div>
+        <div class="modal-footer border-0">
+          <small class="text-white-50 me-auto">
+            <i class="bi bi-calendar3 me-1"></i>{{ photo.uploadDate | date:'yyyy-MM-dd HH:mm' }}
+          </small>
+          <button class="btn btn-outline-light btn-sm" (click)="copyLink(photo, $event)">
+            @if (copiedId() === photo.id) {
+              <i class="bi bi-check-lg me-1"></i>Másolva!
+            } @else {
+              <i class="bi bi-share me-1"></i>Link másolása
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

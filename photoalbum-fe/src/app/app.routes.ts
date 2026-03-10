@@ -24,11 +24,6 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'photo/:id',
-    loadComponent: () =>
-      import('./features/photos/photo-detail/photo-detail.component').then(m => m.PhotoDetailComponent)
-  },
-  {
     path: '**',
     redirectTo: ''
   }

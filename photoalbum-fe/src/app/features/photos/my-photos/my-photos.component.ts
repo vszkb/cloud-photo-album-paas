@@ -1,15 +1,14 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { PhotoService } from '../services/photo.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { Photo } from '../../../core/models/photo.model';
+import { PhotoGridComponent } from '../../../shared/ui/photo-grid/photo-grid.component';
 
 @Component({
   selector: 'app-my-photos',
   standalone: true,
-  imports: [DatePipe, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [FormsModule, ReactiveFormsModule, PhotoGridComponent],
   templateUrl: './my-photos.component.html',
   styleUrl: './my-photos.component.scss'
 })
@@ -30,6 +29,7 @@ export class MyPhotosComponent implements OnInit {
     name: ['', [Validators.required, Validators.maxLength(40)]]
   });
   protected selectedFile = signal<File | null>(null);
+  protected previewUrl = signal<string | null>(null);
   protected uploading = signal(false);
 
   // edit
@@ -59,7 +59,13 @@ export class MyPhotosComponent implements OnInit {
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files?.length) this.selectedFile.set(input.files[0]);
+    if (input.files?.length) {
+      const file = input.files[0];
+      this.selectedFile.set(file);
+      const prev = this.previewUrl();
+      if (prev) URL.revokeObjectURL(prev);
+      this.previewUrl.set(URL.createObjectURL(file));
+    }
   }
 
   upload(): void {
@@ -72,13 +78,16 @@ export class MyPhotosComponent implements OnInit {
       next: () => {
         this.uploadForm.reset();
         this.selectedFile.set(null);
+        const prev = this.previewUrl();
+        if (prev) URL.revokeObjectURL(prev);
+        this.previewUrl.set(null);
         this.uploading.set(false);
         this.toast.show('Sikeres feltöltés!', 'success');
         this.load();
       },
-      error: () => {
+      error: (err) => {
         this.uploading.set(false);
-        this.toast.show('Hiba a feltöltés során.', 'danger');
+        this.toast.show(this.parseError(err, 'Hiba a feltöltés során.'), 'danger');
       }
     });
   }
@@ -105,7 +114,7 @@ export class MyPhotosComponent implements OnInit {
         this.toast.show('Név sikeresen módosítva!', 'success');
         this.load();
       },
-      error: () => this.toast.show('Hiba a módosítás során.', 'danger')
+      error: (err) => this.toast.show(this.parseError(err, 'Hiba a módosítás során.'), 'danger')
     });
   }
 
@@ -128,7 +137,24 @@ export class MyPhotosComponent implements OnInit {
         this.toast.show('Kép sikeresen törölve!', 'success');
         this.load();
       },
-      error: () => this.toast.show('Hiba a törlés során.', 'danger')
+      error: (err) => this.toast.show(this.parseError(err, 'Hiba a törlés során.'), 'danger')
     });
+  }
+
+  private parseError(err: any, fallback: string): string {
+    const body = err?.error;
+    if (!body) return fallback;
+    if (body.errors && typeof body.errors === 'object') {
+      const msgs: string[] = [];
+      for (const key of Object.keys(body.errors)) {
+        const vals = body.errors[key];
+        if (Array.isArray(vals)) msgs.push(...vals);
+      }
+      if (msgs.length) return msgs.join(' ');
+    }
+    if (body.message) return body.message;
+    if (body.title) return body.title;
+    if (typeof body === 'string') return body;
+    return fallback;
   }
 }
