@@ -31,7 +31,7 @@ export class PhotoService {
   upload(name: string, file: File): Observable<Photo> {
     const fd = new FormData();
     fd.append('name', name);
-    fd.append('file', file);
+    fd.append('image', file);
     return this.http.post<Photo>(this.base, fd);
   }
 
