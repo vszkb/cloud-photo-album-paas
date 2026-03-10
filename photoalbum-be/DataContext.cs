@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using photoalbum_be.Models;
 
 namespace photoalbum_be;
 
-public class DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<IdentityUser>(options)
+public class DataContext(DbContextOptions<DataContext> options) : IdentityDbContext<IdentityUser>(options), IDataProtectionKeyContext
 {
     public DbSet<Photo> Photos => Set<Photo>();
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -1,4 +1,5 @@
 using Google.Cloud.Storage.V1;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
@@ -20,6 +21,9 @@ var systemOptions = builder.Configuration.Get<SystemOptions>();
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(systemOptions!.ConnectionStrings.DefaultConnection));
+
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<DataContext>();
 
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<DataContext>();
