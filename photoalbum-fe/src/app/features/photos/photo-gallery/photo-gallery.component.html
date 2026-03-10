@@ -30,7 +30,7 @@
     <div class="photo-grid">
       @for (photo of photos(); track photo.id) {
         <div class="photo-item" (click)="openModal(photo)">
-          <img [src]="photo.imagePath" [alt]="photo.name" loading="lazy">
+          <img [src]="photo.imageUrl" [alt]="photo.name" loading="lazy">
           <div class="photo-overlay">
             <span class="fw-semibold text-truncate">{{ photo.name }}</span>
             <small>{{ photo.uploadDate | date:'yyyy-MM-dd HH:mm' }}</small>
@@ -54,7 +54,7 @@
             <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
           </div>
           <div class="modal-body p-0">
-            <img [src]="photo.imagePath" [alt]="photo.name" class="w-100">
+            <img [src]="photo.imageUrl" [alt]="photo.name" class="w-100">
           </div>
           <div class="modal-footer border-0">
             <small class="text-white-50 me-auto">

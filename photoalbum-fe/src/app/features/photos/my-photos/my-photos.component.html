@@ -57,7 +57,7 @@
     <div class="photo-grid">
       @for (photo of photos(); track photo.id) {
         <div class="photo-item">
-          <img [src]="photo.imagePath" [alt]="photo.name" loading="lazy">
+          <img [src]="photo.imageUrl" [alt]="photo.name" loading="lazy">
           <div class="photo-overlay">
             <span class="fw-semibold text-truncate">{{ photo.name }}</span>
             <small>{{ photo.uploadDate | date:'yyyy-MM-dd HH:mm' }}</small>
