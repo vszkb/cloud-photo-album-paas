@@ -100,6 +100,30 @@ public class PhotosController(DataContext _context, ICloudStorageService _object
     }
 
     /// <summary>
+    /// Fénykép nevének szerkesztése.
+    /// </summary>
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<PhotoListDto>> UpdatePhoto(int id, [FromBody] PhotoUpdateDto dto)
+    {
+        if (dto.Name.Length > 40)
+            return BadRequest("A fájlnév nem lehet hosszabb 40 karakternél.");
+
+        var photo = await _context.Photos.FindAsync(id);
+        if (photo is null)
+            return NotFound();
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        if (photo.UserId != userId)
+            return Forbid();
+
+        photo.Name = dto.Name;
+        await _context.SaveChangesAsync();
+
+        return Ok(new PhotoListDto(photo.Id, photo.Name, photo.UploadDate, photo.ImagePath));
+    }
+
+    /// <summary>
     /// Fénykép törlése
     /// </summary>
     [Authorize]
