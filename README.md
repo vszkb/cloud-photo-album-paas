@@ -4,11 +4,13 @@
 - **Backend:** C# / .NET 10 Web API
 - **Adatbáziskezelés:** Entity Framework Core (Code-First megközelítés automatikus migrációkkal)
 - **Adatbázis:** PostgreSQL (Relációs adatbázis a felhasználók és a fotók metaadatainak tárolására)
+- **Képtárolás:** Object Storage
 
 ## Release stack
 
 * **Backend & Frontend:** Google Cloud Run
 * **Adatbázis:** Google Cloud SQL (PostgreSQL)
+* **Képtárolás:** Google Cloud Storage (Object Storage)
 * **CI/CD:** Google Cloud Build
 
 ## Specifikáció
@@ -23,8 +25,8 @@ Eszközök, feltételek:
 
 Funkcionális követelmények:
 
-- Fényképek feltöltése/törlése.
-- Miden fényképnek legyen neve (max. 40 karakter), és feltöltési dátuma (év-hó-nap óra:perc)
+- Fényképek feltöltése/törlése (a fájlok object storage-ban tárolódnak, az adatbázisban csak a metaadatok kerülnek).
+- Minden fényképnek legyen neve (max. 40 karakter), és feltöltési dátuma (év-hó-nap óra:perc)
 - Fényképek nevének és dátumának listázása név szerint/dátum szerint rendezve.
 - Lista egy elemére kattintva mutassa meg a név mögötti képet.
 - Felhasználókezelés (regisztráció, belépés, kilépés).
