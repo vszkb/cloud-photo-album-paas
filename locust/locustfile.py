@@ -15,7 +15,7 @@ class PhotoAppUser(HttpUser):
             return
 
         login_payload = {"email": email, "password": password}
-        response = self.client.post("/api/auth/login", json=login_payload)
+        response = self.client.post("/login", json=login_payload)
         
         if response.status_code == 200:
             token = response.json().get("token")
