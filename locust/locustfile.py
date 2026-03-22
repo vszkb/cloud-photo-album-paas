@@ -41,7 +41,14 @@ class PhotoAppUser(HttpUser):
     def get_single_photo(self):
         if self.known_photo_ids:
             photo_id = random.choice(self.known_photo_ids)
-            self.client.get(f"/api/photos/{photo_id}", name="GET /api/photos/{id}")
+            with self.client.get(f"/api/photos/{photo_id}", name="GET /api/photos/{id}", catch_response=True) as response:
+                if response.status_code == 200:
+                    response.success()
+                elif response.status_code == 404:
+                    # A kép időközben törölve lett, ez nem hiba
+                    response.success()
+                else:
+                    response.failure(f"Váratlan HTTP kód: {response.status_code}")
 
 
     @task(1)
