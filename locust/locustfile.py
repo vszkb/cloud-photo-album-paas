@@ -18,7 +18,7 @@ class PhotoAppUser(HttpUser):
         response = self.client.post("/login", json=login_payload)
         
         if response.status_code == 200:
-            token = response.json().get("token")
+            token = response.json().get("accessToken")
             self.client.headers.update({"Authorization": f"Bearer {token}"})
             print(f"Sikeres bejelentkezés: {email}")
         else:
