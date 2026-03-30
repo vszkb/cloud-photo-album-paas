@@ -18,12 +18,12 @@ A Locust a cél backend URL-jét, valamint a tesztfelhasználó email címét é
 
 ## A terheléspróba menete
 
-Az alábbi képen látszik, hogy a növekvő terhelés hatására az instancek száma nyolcra nő, a terhelés csökkenésével, pedig az instance-ek száma is csökken.  
+Az alábbi képen látszik, hogy a növekvő terhelés hatására az instancek száma tízre nő, a terhelés csökkenésével, pedig az instance-ek száma is csökken.  
 
-![alt text](<Képernyőkép 2026-03-22 144716.png>)
+![alt text](<Képernyőkép 2026-03-30 095815.png>)
 
-A képen látszik hogy a második teszt során minden locust kérést ki tudott szolgálni a rendszer.
+A képen látszik, hogy 2260 felhasználót már nem tudott hiba nélkül kiszolgálni a rendszer.
 
-![alt text](<Képernyőkép 2026-03-22 144630.png>)
+![alt text](<Képernyőkép 2026-03-30 091708.png>)
 
- A tesztelés 100 és 150 felhasználóra is megtörtént, ami azt mutatja, hogy az alkalmazás még a minimális felhős beállításokkal együtt is könnyedén ki tudna szolgálni ennyi embert, főleg hogy az egyes konténerek feldolgozható kéréseinek száma direkt csökkentve lett.
+ A tesztelés 100, 150 és 2260 felhasználóra is megtörtént. Az első két esetben minden kérést hiba nélkül ki tudott szolgálni az alkalmazás, több mint kétezer felhasználónál már 24%-os hibaarány keletkezett.
