@@ -77,8 +77,9 @@ resource "google_storage_bucket" "images" {
 }
 
 resource "google_cloud_run_v2_service" "backend" {
-  name     = "photoalbum-be"
-  location = var.region
+  name                = "photoalbum-be"
+  location            = var.region
+  deletion_protection = false
 
   depends_on = [google_project_service.apis, google_sql_database_instance.postgres]
 
@@ -124,8 +125,9 @@ resource "google_cloud_run_v2_service" "backend" {
 }
 
 resource "google_cloud_run_v2_service" "frontend" {
-  name     = "photoalbum-fe"
-  location = var.region
+  name                = "photoalbum-fe"
+  location            = var.region
+  deletion_protection = false
 
   depends_on = [google_project_service.apis]
 
