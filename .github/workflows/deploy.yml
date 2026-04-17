@@ -34,8 +34,8 @@ jobs:
 
       - name: Build and push backend image
         run: |
-          docker build -t ${{ env.REGISTRY }}/cloud-photo-album-paas:latest ./photoalbum-be
-          docker push ${{ env.REGISTRY }}/cloud-photo-album-paas:latest
+          docker build -t ${{ env.REGISTRY }}/photoalbum-be:latest ./photoalbum-be
+          docker push ${{ env.REGISTRY }}/photoalbum-be:latest
 
       - name: Build and push frontend image
         run: |
