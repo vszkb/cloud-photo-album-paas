@@ -27,7 +27,7 @@ jobs:
           service_account: ${{ secrets.GCP_SA_EMAIL }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-cloud-sdk@v2
+        uses: google-github-actions/setup-gcloud@v3
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
@@ -43,7 +43,7 @@ jobs:
           docker push ${{ env.REGISTRY }}/photoalbum-fe:latest
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
 
       - name: Terraform Init
         working-directory: terraform
