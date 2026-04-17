@@ -70,7 +70,7 @@ resource "google_sql_database_instance" "postgres" {
 }
 
 resource "google_storage_bucket" "images" {
-  name                        = "photoalbum-images" 
+  name                        = "photoalbum-images-bucket" 
   location                    = var.region
   force_destroy               = false
   uniform_bucket_level_access = true
