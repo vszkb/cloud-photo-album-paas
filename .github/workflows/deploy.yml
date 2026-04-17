@@ -56,6 +56,9 @@ jobs:
         run: terraform apply -auto-approve
 
       - name: Update frontend API_URL
+        working-directory: terraform
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
         run: |
-          BACKEND_URI=$(gcloud run services describe photoalbum-be --region=europe-west1 --format="value(status.url)")
+          BACKEND_URI=$(terraform output -raw backend_url)
           gcloud run services update photoalbum-fe --region=europe-west1 --update-env-vars="API_URL=$BACKEND_URI"

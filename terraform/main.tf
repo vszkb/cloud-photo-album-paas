@@ -166,3 +166,7 @@ resource "google_cloud_run_v2_service_iam_member" "frontend_public" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+output "backend_url" {
+  value = google_cloud_run_v2_service.backend.uri
+}
