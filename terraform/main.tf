@@ -82,6 +82,12 @@ resource "google_storage_bucket" "images" {
   uniform_bucket_level_access = true
 }
 
+resource "google_storage_bucket_iam_member" "public_read" {
+  bucket = google_storage_bucket.images.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
+}
+
 resource "google_cloud_run_v2_service" "backend" {
   name                = "photoalbum-be"
   location            = var.region
