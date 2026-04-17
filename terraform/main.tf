@@ -69,6 +69,12 @@ resource "google_sql_database_instance" "postgres" {
   depends_on = [google_project_service.apis]
 }
 
+resource "google_sql_user" "postgres" {
+  name     = "postgres"
+  instance = google_sql_database_instance.postgres.name
+  password = var.db_password
+}
+
 resource "google_storage_bucket" "images" {
   name                        = "photoalbum-images-bucket" 
   location                    = var.region
