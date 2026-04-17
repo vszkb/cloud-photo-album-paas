@@ -62,21 +62,25 @@ resource "google_sql_database_instance" "postgres" {
   deletion_protection = true 
 
   settings {
-    tier = "db-g1-small"
+    tier    = "db-g1-small"
+    edition = "ENTERPRISE"
   }
 
   depends_on = [google_project_service.apis]
 }
 
 resource "google_storage_bucket" "images" {
-  name          = "photoalbum-images" 
-  location      = var.region
-  force_destroy = false 
+  name                        = "photoalbum-images" 
+  location                    = var.region
+  force_destroy               = false
+  uniform_bucket_level_access = true
 }
 
 resource "google_cloud_run_v2_service" "backend" {
   name     = "photoalbum-be"
   location = var.region
+
+  depends_on = [google_project_service.apis, google_sql_database_instance.postgres]
 
   template {
     service_account = google_service_account.backend_sa.email
@@ -117,13 +121,13 @@ resource "google_cloud_run_v2_service" "backend" {
       max_instance_count = 10
     }
   }
-
-  depends_on = [google_sql_database_instance.postgres]
 }
 
 resource "google_cloud_run_v2_service" "frontend" {
   name     = "photoalbum-fe"
   location = var.region
+
+  depends_on = [google_project_service.apis]
 
   template {
     containers {
