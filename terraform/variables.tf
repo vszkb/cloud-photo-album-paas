@@ -13,7 +13,7 @@ variable "region" {
 variable "registry" {
   description = "Artifact Registry image path"
   type        = string
-  default     = "europe-west1-docker.pkg.dev/photoalbum-iac/cloud-run-source-deploy/photoalbum"
+  default     = "europe-west1-docker.pkg.dev/photoalbum-iac/cloud-run-source-deploy/cloud-photo-album-paas"
 }
 
 variable "db_password" {

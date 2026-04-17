@@ -94,7 +94,7 @@ resource "google_cloud_run_v2_service" "backend" {
     }
 
     containers {
-      image = "${var.registry}/cloud-photo-album-paas:latest"
+      image = "${var.registry}/photoalbum-be:latest"
       
       volume_mounts {
         name       = "cloudsql"
