@@ -1,27 +1,36 @@
 terraform {
   backend "gcs" {
-    bucket = "photoalbum-terraform-state"
+    bucket = "photoalbum-terraform"
     prefix = "terraform/state"
   }
 }
 
 provider "google" {
-  project = "project-9217c1a1-988a-4f7c-990"
-  region  = "europe-west1"
+  project = var.project_id
+  region  = var.region
 }
 
-data "google_secret_manager_secret_version" "db_password" {
-  secret = "db_password"
+# ------------- API-k engedélyezése -------------
+resource "google_project_service" "apis" {
+  for_each = toset([
+    "run.googleapis.com",
+    "sqladmin.googleapis.com",
+    "storage.googleapis.com",
+  ])
+  service            = each.key
+  disable_on_destroy = false
 }
 
 # ------------- Service Account létrehozása a backendnek -------------
 resource "google_service_account" "backend_sa" {
   account_id   = "photo-album-backend-sa"
   display_name = "photoalbum-be-sa"
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_project_iam_member" "sql_client" {
-  project = "project-9217c1a1-988a-4f7c-990"
+  project = var.project_id
   role    = "roles/cloudsql.client"
   member  = "serviceAccount:${google_service_account.backend_sa.email}"
 }
@@ -32,46 +41,42 @@ resource "google_storage_bucket_iam_member" "storage_admin" {
   member = "serviceAccount:${google_service_account.backend_sa.email}"
 }
 
-resource "google_project_iam_member" "secret_access" {
-  project = "project-9217c1a1-988a-4f7c-990"
-  role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${google_service_account.backend_sa.email}"
-}
-
 resource "google_project_iam_member" "log_writer" {
-  project = "project-9217c1a1-988a-4f7c-990"
+  project = var.project_id
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.backend_sa.email}"
 }
 
 resource "google_project_iam_member" "metric_writer" {
-  project = "project-9217c1a1-988a-4f7c-990"
+  project = var.project_id
   role    = "roles/monitoring.metricWriter"
   member  = "serviceAccount:${google_service_account.backend_sa.email}"
 }
 
 # ------------- Cloud Run Services -------------
 resource "google_sql_database_instance" "postgres" {
-  name             = "cloud-photo-album-paas"
+  name             = "photoalbum-db"
   database_version = "POSTGRES_18"
-  region           = "europe-west1"
+  region           = var.region
   
   deletion_protection = true 
 
   settings {
     tier = "db-g1-small"
   }
+
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_storage_bucket" "images" {
   name          = "photoalbum-images" 
-  location      = "europe-west1"
+  location      = var.region
   force_destroy = false 
 }
 
 resource "google_cloud_run_v2_service" "backend" {
-  name     = "cloud-photo-album-paas"
-  location = "europe-west1"
+  name     = "photoalbum-be"
+  location = var.region
 
   template {
     service_account = google_service_account.backend_sa.email
@@ -84,7 +89,7 @@ resource "google_cloud_run_v2_service" "backend" {
     }
 
     containers {
-      image = "europe-west1-docker.pkg.dev/project-9217c1a1-988a-4f7c-990/cloud-run-source-deploy/cloud-photo-album-paas/cloud-photo-album-paas:latest"
+      image = "${var.registry}/cloud-photo-album-paas:latest"
       
       volume_mounts {
         name       = "cloudsql"
@@ -98,12 +103,12 @@ resource "google_cloud_run_v2_service" "backend" {
 
       env {
         name  = "ConnectionStrings__DefaultConnection"
-        value = "Host=/cloudsql/${google_sql_database_instance.postgres.connection_name};Database=postgres;Username=postgres;Password=${data.google_secret_manager_secret_version.db_password.secret_data}"
+        value = "Host=/cloudsql/${google_sql_database_instance.postgres.connection_name};Database=postgres;Username=postgres;Password=${var.db_password}"
       }
 
       env {
         name  = "AllowedOrigins__0"
-        value = "https://photoalbum-fe-107675218729.europe-west1.run.app"
+        value = google_cloud_run_v2_service.frontend.uri
       }
     }
 
@@ -118,17 +123,21 @@ resource "google_cloud_run_v2_service" "backend" {
 
 resource "google_cloud_run_v2_service" "frontend" {
   name     = "photoalbum-fe"
-  location = "europe-west1"
+  location = var.region
 
   template {
     containers {
-      image = "europe-west1-docker.pkg.dev/project-9217c1a1-988a-4f7c-990/cloud-run-source-deploy/cloud-photo-album-paas/photoalbum-fe:latest"
+      image = "${var.registry}/photoalbum-fe:latest"
       
       env {
         name  = "API_URL" 
-        value = google_cloud_run_v2_service.backend.uri 
+        value = "" 
       }
     }
+  }
+
+  lifecycle {
+    ignore_changes = [template[0].containers[0].env]
   }
 }
 

@@ -1,0 +1,61 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  PROJECT_ID: photoalbum-iac
+  REGION: europe-west1
+  REGISTRY: europe-west1-docker.pkg.dev/photoalbum-iac/cloud-run-source-deploy/cloud-photo-album-paas
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-cloud-sdk@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
+
+      - name: Build and push backend image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/cloud-photo-album-paas:latest ./photoalbum-be
+          docker push ${{ env.REGISTRY }}/cloud-photo-album-paas:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/photoalbum-fe:latest ./photoalbum-fe
+          docker push ${{ env.REGISTRY }}/photoalbum-fe:latest
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        run: terraform apply -auto-approve
+
+      - name: Update frontend API_URL
+        run: |
+          BACKEND_URI=$(gcloud run services describe photoalbum-be --region=europe-west1 --format="value(status.url)")
+          gcloud run services update photoalbum-fe --region=europe-west1 --update-env-vars="API_URL=$BACKEND_URI"
