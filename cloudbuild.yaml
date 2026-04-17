@@ -1,0 +1,21 @@
+steps:
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'europe-west1-docker.pkg.dev/project-9217c1a1-988a-4f7c-990/cloud-run-source-deploy/cloud-photo-album-paas/cloud-photo-album-paas:latest', './photoalbum-be']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'europe-west1-docker.pkg.dev/project-9217c1a1-988a-4f7c-990/cloud-run-source-deploy/cloud-photo-album-paas/cloud-photo-album-paas:latest']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'europe-west1-docker.pkg.dev/project-9217c1a1-988a-4f7c-990/cloud-run-source-deploy/cloud-photo-album-paas/photoalbum-fe:latest', './photoalbum-fe']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'europe-west1-docker.pkg.dev/project-9217c1a1-988a-4f7c-990/cloud-run-source-deploy/cloud-photo-album-paas/photoalbum-fe:latest']
+
+  - name: 'hashicorp/terraform:latest'
+    dir: 'terraform'
+    args: ['init']
+
+  - name: 'hashicorp/terraform:latest'
+    dir: 'terraform'
+    args: ['apply', '-auto-approve']
