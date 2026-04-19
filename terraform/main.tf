@@ -123,10 +123,6 @@ resource "google_cloud_run_v2_service" "backend" {
         value = "Host=/cloudsql/${google_sql_database_instance.postgres.connection_name};Database=postgres;Username=postgres;Password=${var.db_password}"
       }
 
-      env {
-        name  = "AllowedOrigins__0"
-        value = google_cloud_run_v2_service.frontend.uri
-      }
     }
 
     scaling {
@@ -171,8 +167,4 @@ resource "google_cloud_run_v2_service_iam_member" "frontend_public" {
   location = google_cloud_run_v2_service.frontend.location
   role     = "roles/run.invoker"
   member   = "allUsers"
-}
-
-output "backend_url" {
-  value = google_cloud_run_v2_service.backend.uri
 }

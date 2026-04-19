@@ -57,10 +57,10 @@ jobs:
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
         run: terraform apply -auto-approve
 
-      - name: Update frontend API_URL
-        working-directory: terraform
-        env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+      - name: Update service URLs
         run: |
-          BACKEND_URI=$(terraform output -raw backend_url)
-          gcloud run services update photoalbum-fe --region=europe-west1 --update-env-vars="API_URL=$BACKEND_URI"
+          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
+          BACKEND_URI="https://photoalbum-be-${PROJECT_NUMBER}.${REGION}.run.app"
+          FRONTEND_URI="https://photoalbum-fe-${PROJECT_NUMBER}.${REGION}.run.app"
+          gcloud run services update photoalbum-fe --region=${{ env.REGION }} --update-env-vars="API_URL=$BACKEND_URI"
+          gcloud run services update photoalbum-be --region=${{ env.REGION }} --update-env-vars="AllowedOrigins__0=$FRONTEND_URI"
